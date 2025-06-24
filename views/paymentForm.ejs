@@ -1,0 +1,20 @@
+<h1>Proceed to Pay</h1>
+
+<form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+  <input type="hidden" name="amount" value="<%= amount %>">
+  <input type="hidden" name="tax_amount" value="<%= tax_amount %>">
+  <input type="hidden" name="total_amount" value="<%= total_amount %>">
+  <input type="hidden" name="transaction_uuid" value="<%= transaction_uuid %>">
+  <input type="hidden" name="product_code" value="<%= product_code %>">
+  <input type="hidden" name="product_service_charge" value="<%= service_charge %>">
+  <input type="hidden" name="product_delivery_charge" value="<%= delivery_charge %>">
+  <input type="hidden" name="success_url" value="https://developer.esewa.com.np/success">
+  <input type="hidden" name="failure_url" value="https://developer.esewa.com.np/failure">
+  <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code">
+  <input type="hidden" name="signature" value="<%= signature %>">
+  <button type="submit">Pay with eSewa</button>
+</form>
+
+<!-- Debug -->
+<p><strong>Debug (string to sign):</strong> <%= total_amount %>,<%= transaction_uuid %>,<%= product_code %></p>
+<p><strong>Signature:</strong> <%= signature %></p>

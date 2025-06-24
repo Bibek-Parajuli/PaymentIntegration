@@ -1,0 +1,13 @@
+<h1>Buy Products</h1>
+
+<% products.forEach(product => { %>
+  <div style="margin-bottom: 20px;">
+    <h3><%= product.name %></h3>
+    <p>Price: Rs <%= product.price %></p>
+
+    <form action="/buy" method="POST">
+      <input type="hidden" name="_id" value="<%= product._id %>">
+      <button type="submit">Buy Now</button>
+    </form>
+  </div>
+<% }); %>
