@@ -1,26 +1,33 @@
 const express = require("express");
 const path = require("path");
-const crypto = require("crypto");
+const CryptoJS = require("crypto-js"); // ✅ Corrected import
 const { v4: uuidv4 } = require("uuid");
 const bodyParser = require("body-parser");
 const Product = require("./models/Product");
+const dbConnect = require("./models/dbConfig");
+
 const app = express();
-const dbConnect=require('./models/dbConfig')
+const PORT = 3000;
+
+// Constants
+const ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q("; // Test key
+const PRODUCT_CODE = "EPAYTEST";
+
+// Middleware & Config
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q("; // Test key from docs
-const PRODUCT_CODE="EPAYTEST"
+// DB Connect
 dbConnect();
 
-// Show all products
+// Home Route: Show all products
 app.get("/", async (req, res) => {
   const products = await Product.find();
   res.render("home", { products });
 });
 
-// Show payment form
+// Buy Route
 app.post("/buy", async (req, res) => {
   const { _id } = req.body;
 
@@ -28,33 +35,25 @@ app.post("/buy", async (req, res) => {
   if (!product) return res.status(404).send("Product not found");
 
   const amount = product.price;
-  const tax_amount = 0;
-  const service_charge = 0;
-  const delivery_charge = 0;
-  const total_amount = amount + tax_amount + service_charge + delivery_charge;
-
   const transaction_uuid = uuidv4();
-  const stringToSign = `${total_amount},${transaction_uuid},${PRODUCT_CODE}`;
-  const signature = crypto
-    .createHmac("sha256", ESEWA_SECRET_KEY)
-    .update(stringToSign)
-    .digest("base64");
 
-  console.log("✅ Signature String:", stringToSign);
-  console.log("🔐 Signature:", signature);
+  // ✅ Correct message format
+  const message = `total_amount=${amount},transaction_uuid=${transaction_uuid},product_code=${PRODUCT_CODE}`;
 
-  res.render("paymentForm", {
-    product,
-    amount,
-    tax_amount,
-    service_charge,
-    delivery_charge,
-    total_amount,
-    transaction_uuid,
-    product_code: PRODUCT_CODE,
-    signature,
-  });
+  // ✅ Generate HMAC-SHA256 and encode to Base64
+  const hash = CryptoJS.HmacSHA256(message, ESEWA_SECRET_KEY);
+  const hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+
+res.render("paymentForm", {
+  product,
+  amount,
+  transaction_uuid,
+  product_code: PRODUCT_CODE,
+  hashInBase64
 });
-app.listen(3000, () => {
-  console.log("🚀 Server running at http://localhost:3000");
+
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
